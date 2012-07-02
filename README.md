@@ -3,6 +3,7 @@ node-authenticate
 
 Asynchronous PAM authentication for NodeJS 0.8.0 and later (using libuv and gyp)
 You will most likely need to run it as root in most common environments!
+Running as non-root on my system (openSUSE 12.1) made a segfault happen somewhere in `libpam`!
 
 It tries to superseed the previous and outdated node-pam extension with the following improvements:
 * Allows to provide own service name, for example common-auth or any custom service name defined in `/etc/pam.d`
