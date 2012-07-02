@@ -46,4 +46,4 @@ To do proper network authentication you should also provide `remoteHost` key to 
     
 Install
 -------------------
-To be commited to npm registry and sent to github soon
+`npm install authenticate-pam`
