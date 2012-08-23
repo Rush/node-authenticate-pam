@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/RushPL/node-authenticate-pam.png)](http://travis-ci.org/RushPL/node-authenticate-pam)
 node-authenticate
 =================
 
