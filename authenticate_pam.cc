@@ -25,7 +25,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <v8.h>
 #include <unistd.h>
 #include <uv.h>
-#include <string.h>
+#include <string>
+#include <cstring>
 #include <stdlib.h>
 
 #include <security/pam_appl.h>
