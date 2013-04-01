@@ -95,7 +95,7 @@ void doing_auth_thread(uv_work_t* req) {
 	return;
 }
 
-void after_doing_auth(uv_work_t* req) {
+void after_doing_auth(uv_work_t* req, int status) {
 	HandleScope scope;
 
 	auth_context* m = static_cast<auth_context*>(req->data);
