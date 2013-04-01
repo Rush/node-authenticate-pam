@@ -1,6 +1,6 @@
 {
   "name" : "authenticate-pam",
-  "version" : "v0.1.2"
+  "version" : "v0.1.3"
   , "scripts" : {
       "preinstall" : "node-gyp configure && node-gyp build"
       , "preuninstall" : "rm -rf build/*"
@@ -18,4 +18,7 @@
       "type" : "git"
       , "url" : "https://github.com/RushPL/node-authenticate-pam.git"
     }
+  ,  "engines": {
+    "node": "0.10.x"
+  }
 }
