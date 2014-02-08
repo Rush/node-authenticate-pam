@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012 Damian Kaczmarek <rush@rushbase.net>
+Copyright (c) 2012-2014 Damian Kaczmarek <damian@codecharm.co.uk>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -20,9 +20,7 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#define BUILDING_NODE_EXTENSION
-#include <node.h>
-#include <v8.h>
+#include <nan.h>
 #include <unistd.h>
 #include <uv.h>
 #include <string>
@@ -96,7 +94,7 @@ void doing_auth_thread(uv_work_t* req) {
 }
 
 void after_doing_auth(uv_work_t* req, int status) {
-	HandleScope scope;
+	NanScope();
 
 	auth_context* m = static_cast<auth_context*>(req->data);
 	TryCatch try_catch;
@@ -106,7 +104,9 @@ void after_doing_auth(uv_work_t* req, int status) {
 		args[0] = String::New(m->errorString.c_str());
 	}
 
-	m->callback->Call(Context::GetCurrent()->Global(), 1, args);
+//	m->callback->Call(Context::GetCurrent()->Global(), 1, args);
+	NanPersistentToLocal(m->callback)->Call(Context::GetCurrent()->Global(), 1, args);
+
 	m->callback.Dispose();
 
 	delete m;
@@ -116,24 +116,24 @@ void after_doing_auth(uv_work_t* req, int status) {
 		node::FatalException(try_catch);
 }
 
-Handle<Value> Authenticate(const Arguments& args) {
-	HandleScope scope;
+NAN_METHOD(Authenticate) {
+	NanScope();
 
 	if(args.Length() < 3) {
 		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-		return scope.Close(Undefined());
+		NanReturnUndefined();
 	}
 
 	Local<Value> usernameVal(args[0]);
 	Local<Value> passwordVal(args[1]);
 	if(!usernameVal->IsString() || !passwordVal->IsString()) {
 		ThrowException(Exception::TypeError(String::New("Argument 0 and 1 should be a String")));
-		return scope.Close(Undefined());
+		NanReturnUndefined();
 	}
 	Local<Value> callbackVal(args[2]);
 	if(!callbackVal->IsFunction()) {
 		ThrowException(Exception::TypeError(String::New("Argument 2 should be a Function")));
-		return scope.Close(Undefined());
+		NanReturnUndefined();
 	}
 
 	Local<Function> callback = Local<Function>::Cast(callbackVal);
@@ -158,7 +158,7 @@ Handle<Value> Authenticate(const Arguments& args) {
 			remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
 		}
 	}
-	m->callback = Persistent<Function>::New(callback);
+	NanAssignPersistent(Function, m->callback, callback);
 
 	username->WriteUtf8(m->username, sizeof(m->username) - 1);
 	password->WriteUtf8(m->password, sizeof(m->password) - 1);
@@ -167,11 +167,12 @@ Handle<Value> Authenticate(const Arguments& args) {
 
 	uv_queue_work(uv_default_loop(), req, doing_auth_thread, after_doing_auth);
 
-	return scope.Close(Undefined());
+	NanReturnUndefined();
 }
 
-void init(Handle<Object> target) {
-	node::SetMethod(target, "authenticate", Authenticate);
+void init(Handle<Object> exports) {
+	Local<FunctionTemplate> tpl = FunctionTemplate::New(Authenticate);
+	exports->Set(String::NewSymbol("authenticate"), tpl->GetFunction());
 }
 
 NODE_MODULE(authenticate_pam, init);
