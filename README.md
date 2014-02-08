@@ -1,7 +1,7 @@
 node-authenticate-pam
 =====================
 
-Asynchronous PAM authentication for NodeJS 0.8.0 and later (using libuv and gyp)
+Asynchronous PAM authentication for NodeJS 0.10 and 0.12
 
 *You will most likely need to run it as root in most common environments!*
 **Running as non-root on my system (openSUSE 12.1) made a segfault happen somewhere in `libpam`!**
@@ -20,15 +20,17 @@ Simple usage
 ------------
 Default service_name for `pam_start(2)` is 'login'.
 
-    var pam = require('authenticate-pam');
-    pam.authenticate('myusername', 'mysecretpassword', function(err) {
-        if(err) {
-          console.log(err);
-        }
-        else {
-          console.log("Authenticated!");
-        }
-      });
+```js
+var pam = require('authenticate-pam');
+pam.authenticate('myusername', 'mysecretpassword', function(err) {
+    if(err) {
+      console.log(err);
+    }
+    else {
+      console.log("Authenticated!");
+    }
+  });
+```
 
 Usage with options:
 -------------------
@@ -36,15 +38,17 @@ Proper apps should provide their own service name. Sample services are located i
 As an example lookup a service name file for `sshd`.
 To do proper network authentication you should also provide `remoteHost` key to the options argument. It will be passed to pam as `PAM_RHOST` (`pam_set_item(2)`)
 
-    var pam = require('authenticate-pam');
-    pam.authenticate('rush', 'mysecretpassword', function(err) {
-        if(err) {
-          console.log(err);
-        }
-        else {
-          console.log("Authenticated!");
-        }
-    }, {serviceName: 'myapp', remoteHost: 'localhost'});
+```js
+var pam = require('authenticate-pam');
+pam.authenticate('rush', 'mysecretpassword', function(err) {
+    if(err) {
+      console.log(err);
+    }
+    else {
+      console.log("Authenticated!");
+    }
+}, {serviceName: 'myapp', remoteHost: 'localhost'});
+```
     
 Install
 -------------------
