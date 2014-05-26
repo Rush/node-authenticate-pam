@@ -99,15 +99,14 @@ void after_doing_auth(uv_work_t* req, int status) {
 	auth_context* m = static_cast<auth_context*>(req->data);
 	TryCatch try_catch;
 
-	Handle<Value> args[1] = {Undefined()};
+	Handle<Value> args[1] = {NanUndefined()};
 	if(m->error) {
-		args[0] = String::New(m->errorString.c_str());
+		args[0] = NanNew<String>(m->errorString.c_str());
 	}
 
-//	m->callback->Call(Context::GetCurrent()->Global(), 1, args);
-	NanPersistentToLocal(m->callback)->Call(Context::GetCurrent()->Global(), 1, args);
+  NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(m->callback), 1, args);
 
-	m->callback.Dispose();
+	NanDisposePersistent(m->callback);
 
 	delete m;
 	delete req;
@@ -120,19 +119,19 @@ NAN_METHOD(Authenticate) {
 	NanScope();
 
 	if(args.Length() < 3) {
-		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+		NanTypeError("Wrong number of arguments");
 		NanReturnUndefined();
 	}
 
 	Local<Value> usernameVal(args[0]);
 	Local<Value> passwordVal(args[1]);
 	if(!usernameVal->IsString() || !passwordVal->IsString()) {
-		ThrowException(Exception::TypeError(String::New("Argument 0 and 1 should be a String")));
+		NanTypeError("Argument 0 and 1 should be a String");
 		NanReturnUndefined();
 	}
 	Local<Value> callbackVal(args[2]);
 	if(!callbackVal->IsFunction()) {
-		ThrowException(Exception::TypeError(String::New("Argument 2 should be a Function")));
+		NanTypeError("Argument 2 should be a Function");
 		NanReturnUndefined();
 	}
 
@@ -147,18 +146,18 @@ NAN_METHOD(Authenticate) {
 
 	if(args.Length() == 4 && !args[3]->IsUndefined()) {
 		Local<Array> options = Local<Array>::Cast(args[3]);
-		Local<Value> res = options->Get(String::New("serviceName"));
+		Local<Value> res = options->Get(NanNew<String>("serviceName"));
 		if(! res->IsUndefined()) {
 			Local<String> serviceName = Local<String>::Cast(res);
 			serviceName->WriteUtf8(m->serviceName, sizeof(m->serviceName) - 1);
 		}
-		res = options->Get(String::New("remoteHost"));
+		res = options->Get(NanNew<String>("remoteHost"));
 		if(! res->IsUndefined()) {
 			Local<String> remoteHost = Local<String>::Cast(res);
 			remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
 		}
 	}
-	NanAssignPersistent(Function, m->callback, callback);
+	NanAssignPersistent(m->callback, callback);
 
 	username->WriteUtf8(m->username, sizeof(m->username) - 1);
 	password->WriteUtf8(m->password, sizeof(m->password) - 1);
@@ -171,8 +170,8 @@ NAN_METHOD(Authenticate) {
 }
 
 void init(Handle<Object> exports) {
-	Local<FunctionTemplate> tpl = FunctionTemplate::New(Authenticate);
-	exports->Set(String::NewSymbol("authenticate"), tpl->GetFunction());
+	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(Authenticate);
+	exports->Set(NanNew<String>("authenticate"), tpl->GetFunction());
 }
 
 NODE_MODULE(authenticate_pam, init);
