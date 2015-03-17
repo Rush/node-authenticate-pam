@@ -1,10 +1,7 @@
 {
   "name": "authenticate-pam",
   "version": "v0.2.2",
-  "scripts": {
-    "preinstall": "node-gyp configure && node-gyp build",
-    "preuninstall": "rm -rf build/*"
-  },
+  "gypfile": true,
   "main": "build/Release/authenticate_pam.node",
   "description": "Asynchronous PAM authentication for Node.JS",
   "homepage": "https://github.com/RushPL/node-authenticate-pam",
