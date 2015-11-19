@@ -38,7 +38,7 @@ struct auth_context {
 		username[0] = '\0';
 		password[0] = '\0';
 	}
-	Persistent<Function> callback;
+	Nan::Persistent<Function> callback;
 	char serviceName[128];
 	char username[128];
 	char password[128];
@@ -94,45 +94,43 @@ void doing_auth_thread(uv_work_t* req) {
 }
 
 void after_doing_auth(uv_work_t* req, int status) {
-	NanScope();
+	Nan::HandleScope scope;
 
 	auth_context* m = static_cast<auth_context*>(req->data);
-	TryCatch try_catch;
+	Nan::TryCatch try_catch;
 
-	Handle<Value> args[1] = {NanUndefined()};
+	Local<Value> args[1] = {Nan::Undefined()};
 	if(m->error) {
-		args[0] = NanNew<String>(m->errorString.c_str());
+		args[0] = Nan::New<String>(m->errorString.c_str()).ToLocalChecked();
 	}
 
-  NanMakeCallback(NanGetCurrentContext()->Global(), NanNew(m->callback), 1, args);
+  Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(m->callback), 1, args);
 
-	NanDisposePersistent(m->callback);
+	m->callback.Reset();
 
 	delete m;
 	delete req;
 
 	if(try_catch.HasCaught())
-		node::FatalException(try_catch);
+		Nan::FatalException(try_catch);
 }
 
 NAN_METHOD(Authenticate) {
-	NanScope();
-
-	if(args.Length() < 3) {
-		NanTypeError("Wrong number of arguments");
-		NanReturnUndefined();
+	if(info.Length() < 3) {
+		Nan::ThrowTypeError("Wrong number of arguments");
+		return;
 	}
 
-	Local<Value> usernameVal(args[0]);
-	Local<Value> passwordVal(args[1]);
+	Local<Value> usernameVal(info[0]);
+	Local<Value> passwordVal(info[1]);
 	if(!usernameVal->IsString() || !passwordVal->IsString()) {
-		NanTypeError("Argument 0 and 1 should be a String");
-		NanReturnUndefined();
+		Nan::ThrowTypeError("Argument 0 and 1 should be a String");
+		return;
 	}
-	Local<Value> callbackVal(args[2]);
+	Local<Value> callbackVal(info[2]);
 	if(!callbackVal->IsFunction()) {
-		NanTypeError("Argument 2 should be a Function");
-		NanReturnUndefined();
+		Nan::ThrowTypeError("Argument 2 should be a Function");
+		return;
 	}
 
 	Local<Function> callback = Local<Function>::Cast(callbackVal);
@@ -144,20 +142,20 @@ NAN_METHOD(Authenticate) {
 	uv_work_t* req = new uv_work_t;
 	struct auth_context* m = new auth_context;
 
-	if(args.Length() == 4 && !args[3]->IsUndefined()) {
-		Local<Array> options = Local<Array>::Cast(args[3]);
-		Local<Value> res = options->Get(NanNew<String>("serviceName"));
+	if(info.Length() == 4 && !info[3]->IsUndefined()) {
+		Local<Array> options = Local<Array>::Cast(info[3]);
+		Local<Value> res = options->Get(Nan::New<String>("serviceName").ToLocalChecked());
 		if(! res->IsUndefined()) {
 			Local<String> serviceName = Local<String>::Cast(res);
 			serviceName->WriteUtf8(m->serviceName, sizeof(m->serviceName) - 1);
 		}
-		res = options->Get(NanNew<String>("remoteHost"));
+		res = options->Get(Nan::New<String>("remoteHost").ToLocalChecked());
 		if(! res->IsUndefined()) {
 			Local<String> remoteHost = Local<String>::Cast(res);
 			remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
 		}
 	}
-	NanAssignPersistent(m->callback, callback);
+	m->callback.Reset(callback);
 
 	username->WriteUtf8(m->username, sizeof(m->username) - 1);
 	password->WriteUtf8(m->password, sizeof(m->password) - 1);
@@ -166,12 +164,12 @@ NAN_METHOD(Authenticate) {
 
 	uv_queue_work(uv_default_loop(), req, doing_auth_thread, after_doing_auth);
 
-	NanReturnUndefined();
+	info.GetReturnValue().Set(Nan::Undefined());
 }
 
 void init(Handle<Object> exports) {
-	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(Authenticate);
-	exports->Set(NanNew<String>("authenticate"), tpl->GetFunction());
+	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(Authenticate);
+	exports->Set(Nan::New<String>("authenticate").ToLocalChecked(), tpl->GetFunction());
 }
 
 NODE_MODULE(authenticate_pam, init);
