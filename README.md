@@ -1,7 +1,7 @@
 node-authenticate-pam
 =====================
 
-Asynchronous PAM authentication for NodeJS 0.10 and 0.12
+Asynchronous PAM authentication for NodeJS
 
 *You will most likely need to run it as root in most common environments!*
 **Running as non-root on my system (openSUSE 12.1) made a segfault happen somewhere in `libpam`!**
