@@ -48,7 +48,10 @@ struct auth_context {
 };
 
 static int function_conversation(int num_msg, const struct pam_message** msg, struct pam_response** resp, void* appdata_ptr) {
-	struct pam_response* reply = (struct pam_response*)appdata_ptr;
+	auth_context* data = static_cast<auth_context*>(appdata_ptr);
+	struct pam_response* reply = (struct pam_response*)malloc(sizeof(struct pam_response));
+	reply->resp = strdup((char*)data->password);
+	reply->resp_retcode = 0;
 	*resp = reply;
 	return PAM_SUCCESS;
 }
@@ -66,10 +69,7 @@ static int function_conversation(int num_msg, const struct pam_message** msg, st
 void doing_auth_thread(uv_work_t* req) {
 	auth_context* data = static_cast<auth_context*>(req->data);
 
-	struct pam_response* reply = (struct pam_response*)malloc(sizeof(struct pam_response));
-	reply->resp = strdup(data->password);
-	reply->resp_retcode = 0;
-	const struct pam_conv local_conversation = { function_conversation, (void*)reply };
+	const struct pam_conv local_conversation = { function_conversation, (void*)data };
 	pam_handle_t* local_auth_handle = NULL; // this gets set by pam_start
 
 	int retval = pam_start(strlen(data->serviceName)?data->serviceName:"login",
