@@ -81,7 +81,9 @@ void doing_auth_thread(uv_work_t* req) {
 		HANDLE_PAM_ERROR("pam_set_item")
 	}
 	retval = pam_authenticate(local_auth_handle, 0);
-	HANDLE_PAM_ERROR("")
+	HANDLE_PAM_ERROR("pam_authenticate")
+	retval = pam_acct_mgmt(local_auth_handle, 0);
+	HANDLE_PAM_ERROR("pam_acct_mgmt")
 
 	retval = pam_end(local_auth_handle, retval);
 	if(retval != PAM_SUCCESS) {
