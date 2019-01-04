@@ -52,4 +52,5 @@ pam.authenticate('rush', 'mysecretpassword', function(err) {
     
 Install
 -------------------
+First you need install the development version of PAM libraries: `apt install libpam0g-dev`, then you can install the module:
 `npm install authenticate-pam`
