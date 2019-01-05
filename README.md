@@ -52,5 +52,19 @@ pam.authenticate('rush', 'mysecretpassword', function(err) {
     
 Install
 -------------------
-First you need install the development version of PAM libraries: `apt install libpam0g-dev`, then you can install the module:
+First you need install the development version of PAM libraries for your distro.
+
+**Centos and RHEL**:
+`yum install pam-devel`
+
+**Debian/Ubuntu**:
+`apt-get install libpam0g-dev`
+
+**debian6/maverick/natty**:
+`apt-get install libreadline5-dev`
+
+**oneiric (and any newer, eg. Debian 7 or Ubuntu 12.04)**:
+`apt-get install libreadline-gplv2-dev`
+
+Then you can install the module:
 `npm install authenticate-pam`
