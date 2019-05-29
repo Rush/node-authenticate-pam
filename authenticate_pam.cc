@@ -104,7 +104,12 @@ void after_doing_auth(uv_work_t* req, int status) {
 		args[0] = Nan::New<String>(m->errorString.c_str()).ToLocalChecked();
 	}
 
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+	Nan::AsyncResource *asyncResource = new Nan::AsyncResource("callback");
+	asyncResource->runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(m->callback), 1, args);
+#else
   Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(m->callback), 1, args);
+#endif	
 
 	m->callback.Reset();
 
@@ -144,21 +149,42 @@ NAN_METHOD(Authenticate) {
 
 	if(info.Length() == 4 && !info[3]->IsUndefined()) {
 		Local<Array> options = Local<Array>::Cast(info[3]);
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+		Local<Value> res = Nan::Get(options, Nan::New<String>("serviceName").ToLocalChecked()).ToLocalChecked();
+#else
 		Local<Value> res = options->Get(Nan::New<String>("serviceName").ToLocalChecked());
+#endif
 		if(! res->IsUndefined()) {
 			Local<String> serviceName = Local<String>::Cast(res);
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+			serviceName->WriteUtf8(Isolate::GetCurrent(), m->serviceName, sizeof(m->serviceName) - 1);
+#else
 			serviceName->WriteUtf8(m->serviceName, sizeof(m->serviceName) - 1);
+#endif
 		}
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+		res = Nan::Get(options, Nan::New<String>("remoteHost").ToLocalChecked()).ToLocalChecked();
+#else
 		res = options->Get(Nan::New<String>("remoteHost").ToLocalChecked());
+#endif
 		if(! res->IsUndefined()) {
 			Local<String> remoteHost = Local<String>::Cast(res);
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+			remoteHost->WriteUtf8(Isolate::GetCurrent(), m->remoteHost, sizeof(m->remoteHost) - 1);
+#else
 			remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
+#endif
 		}
 	}
 	m->callback.Reset(callback);
 
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+	username->WriteUtf8(Isolate::GetCurrent(), m->username, sizeof(m->username) - 1);
+	password->WriteUtf8(Isolate::GetCurrent(), m->password, sizeof(m->password) - 1);
+#else
 	username->WriteUtf8(m->username, sizeof(m->username) - 1);
 	password->WriteUtf8(m->password, sizeof(m->password) - 1);
+#endif
 
 	req->data = m;
 
@@ -167,9 +193,19 @@ NAN_METHOD(Authenticate) {
 	info.GetReturnValue().Set(Nan::Undefined());
 }
 
+#if (NODE_MODULE_VERSION > NODE_11_0_MODULE_VERSION)
+void init(Local<Object> exports) {
+	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(Authenticate);
+	Nan::Set(exports,
+		Nan::New<String>("authenticate").ToLocalChecked(), 
+		Nan::GetFunction(tpl).ToLocalChecked()
+	);
+}
+#else
 void init(Handle<Object> exports) {
 	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(Authenticate);
 	exports->Set(Nan::New<String>("authenticate").ToLocalChecked(), tpl->GetFunction());
 }
+#endif
 
 NODE_MODULE(authenticate_pam, init);
