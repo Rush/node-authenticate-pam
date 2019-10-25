@@ -144,22 +144,35 @@ NAN_METHOD(Authenticate) {
 
 	if(info.Length() == 4 && !info[3]->IsUndefined()) {
 		Local<Array> options = Local<Array>::Cast(info[3]);
-		Local<Value> res = options->Get(Nan::New<String>("serviceName").ToLocalChecked());
+		Local<Value> res = Nan::Get(options, Nan::New<String>("serviceName").ToLocalChecked()).ToLocalChecked();
 		if(! res->IsUndefined()) {
 			Local<String> serviceName = Local<String>::Cast(res);
-			serviceName->WriteUtf8(m->serviceName, sizeof(m->serviceName) - 1);
+			#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 7
+				serviceName->WriteUtf8(v8::Isolate::GetCurrent(),m->serviceName, sizeof(m->serviceName) - 1);
+			#else
+				serviceName->WriteUtf8(m->serviceName, sizeof(m->serviceName) - 1);
+			#endif
 		}
-		res = options->Get(Nan::New<String>("remoteHost").ToLocalChecked());
+		res = Nan::Get(options, Nan::New<String>("remoteHost").ToLocalChecked()).ToLocalChecked();
 		if(! res->IsUndefined()) {
 			Local<String> remoteHost = Local<String>::Cast(res);
-			remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
-		}
+			#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 7
+				remoteHost->WriteUtf8(v8::Isolate::GetCurrent(),m->remoteHost, sizeof(m->remoteHost) - 1);
+			#else
+				remoteHost->WriteUtf8(m->remoteHost, sizeof(m->remoteHost) - 1);
+			#endif
+		}	
 	}
 	m->callback.Reset(callback);
-
-	username->WriteUtf8(m->username, sizeof(m->username) - 1);
-	password->WriteUtf8(m->password, sizeof(m->password) - 1);
-
+	
+	#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 7
+		username->WriteUtf8(v8::Isolate::GetCurrent(),m->username, sizeof(m->username) - 1);
+		password->WriteUtf8(v8::Isolate::GetCurrent(),m->password, sizeof(m->password) - 1);
+	#else
+		username->WriteUtf8(m->username, sizeof(m->username) - 1);
+		password->WriteUtf8(m->password, sizeof(m->password) - 1);
+	#endif
+	
 	req->data = m;
 
 	uv_queue_work(uv_default_loop(), req, doing_auth_thread, after_doing_auth);
@@ -167,9 +180,9 @@ NAN_METHOD(Authenticate) {
 	info.GetReturnValue().Set(Nan::Undefined());
 }
 
-void init(Handle<Object> exports) {
+void init(v8::Local<v8::Object> exports) {
 	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(Authenticate);
-	exports->Set(Nan::New<String>("authenticate").ToLocalChecked(), tpl->GetFunction());
+	Nan::Set(exports,Nan::New<String>("authenticate").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NODE_MODULE(authenticate_pam, init);
