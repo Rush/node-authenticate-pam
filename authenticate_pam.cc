@@ -182,11 +182,7 @@ NAN_METHOD(Authenticate) {
 
 void init(v8::Local<v8::Object> exports) {
 	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(Authenticate);
-	#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 7
-		Nan::Set(exports,Nan::New<String>("authenticate").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
-	#else
-		exports->Set(Nan::New<String>("authenticate").ToLocalChecked(), tpl->GetFunction());
-	#endif
+	Nan::Set(exports,Nan::New<String>("authenticate").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NODE_MODULE(authenticate_pam, init);
