@@ -14,6 +14,6 @@
     "url": "https://github.com/RushPL/node-authenticate-pam.git"
   },
   "dependencies": {
-    "nan": "^2.3.2"
+    "nan": "*"
   }
 }
