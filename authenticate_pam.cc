@@ -104,7 +104,8 @@ void after_doing_auth(uv_work_t* req, int status) {
 		args[0] = Nan::New<String>(m->errorString.c_str()).ToLocalChecked();
 	}
 
-  Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New(m->callback), 1, args);
+	Nan::AsyncResource *asyncResource = new Nan::AsyncResource("callback");
+	asyncResource->runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(m->callback), 1, args);
 
 	m->callback.Reset();
 
