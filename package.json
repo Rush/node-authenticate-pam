@@ -1,6 +1,6 @@
 {
   "name": "authenticate-pam",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "gypfile": true,
   "main": "build/Release/authenticate_pam.node",
   "description": "Asynchronous PAM authentication for Node.JS",
@@ -14,7 +14,7 @@
     "url": "https://github.com/RushPL/node-authenticate-pam.git"
   },
   "dependencies": {
-    "nan": "*"
+    "nan": "^2.3.3"
   },
   "files": [
     "authenticate_pam.cc",
