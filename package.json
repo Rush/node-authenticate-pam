@@ -1,6 +1,6 @@
 {
   "name": "authenticate-pam",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "gypfile": true,
   "main": "build/Release/authenticate_pam.node",
   "description": "Asynchronous PAM authentication for Node.JS",
