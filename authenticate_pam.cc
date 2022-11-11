@@ -83,6 +83,9 @@ void doing_auth_thread(uv_work_t* req) {
 	retval = pam_authenticate(local_auth_handle, 0);
 	HANDLE_PAM_ERROR("")
 
+	retval = pam_acct_mgmt(local_auth_handle, 0);
+	HANDLE_PAM_ERROR("")
+
 	retval = pam_end(local_auth_handle, retval);
 	if(retval != PAM_SUCCESS) {
 		data->errorString = "pam_end: " + std::string(pam_strerror(local_auth_handle, retval));
